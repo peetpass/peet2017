@@ -1,0 +1,70 @@
+---
+title: "PEET 2017 예상"
+author: "PEETPASS"
+date: "2016년 8월 17일"
+output:
+  html_document:
+    fig_caption: no
+    force_captions: no
+    highlight: tango
+    keep_md: no
+    number_sections: no
+    theme: readable
+  word_document:
+    highlight: tango
+    keep_md: no
+    reference_docx: resources/docx/template.docx
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/', echo=FALSE, warning=FALSE, message=FALSE) 
+
+# Required libraries
+MyPackages = c("ggplot2", "knitr", "xlsx", "dplyr", "pastecs")
+# install.packages(MyPackages)
+inst = lapply(MyPackages, library, character.only = TRUE) # load them
+```
+
+## 독점! PEETPASS 예측 합격가능점수
+<https://peetpass.shinyapps.io/peet2017/>
+
+
+## 총점분석
+
+```{r}
+Range = c("학년도", "응시인원", "270이상", "260-269점", "250~259점", "240~249점", "230~239점")
+
+Title = "일반화학"
+Original <- read.csv("data/total.csv", stringsAsFactors = FALSE, skip = 1)
+Original_Final = rbind(Original, stat.desc(Original)["mean", ])[c(3,1,2),] %>% mutate(Year = replace(Year, Year == 2015.5, 2017))
+kable(Original_Final, caption = Title, digits = 0, col.names = Range)
+
+
+```
+
+## 2017년 원점수 
+
+```{r pressure, echo=FALSE}
+
+# We predict 2017. Original results
+
+Original <- read.csv("data/original.csv", stringsAsFactors = FALSE)
+Original_Final = rbind(Original, stat.desc(Original)["mean", ])[c(3,1,2),] %>% mutate(Year = replace(Year, Year == 2015.5, 2017))
+kable(Original_Final, caption = "최근 3년 원점수 1점당 표준점수 차이", digits = 2)
+
+```
+
+## 2017년 PEET 과목별 분포
+
+```{r}
+Range = c("연도", "75-80", "70-75", "65-70", "60-65", "55-60", "50-55", "45-50", "40-45", "35-40", "30-35", "30이하")
+Title = "일반화학"
+Original <- read.csv("data/chem.csv", stringsAsFactors = FALSE, skip = 1)
+Original_Final = rbind(Original, stat.desc(Original)["mean", ])[c(3,1,2),] %>% mutate(Year = replace(Year, Year == 2015.5, 2017))
+kable(Original_Final, caption = Title, digits = 0, col.names = Range)
+
+#Orga <- read.csv("data/orga.csv", stringsAsFactors = FALSE)
+#Phys <- read.csv("data/phys.csv", stringsAsFactors = FALSE)
+#Biol <- read.csv("data/biol.csv", stringsAsFactors = FALSE)
+
+```
