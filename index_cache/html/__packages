@@ -1,0 +1,12 @@
+base
+ggplot2
+knitr
+rJava
+xlsxjars
+xlsx
+dplyr
+boot
+pastecs
+ggthemes
+extrafont
+truncnorm

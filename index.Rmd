@@ -1,0 +1,162 @@
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.width=7, fig.height=5, fig.path='Figs/', echo=FALSE, warning=FALSE, message=FALSE, results = 'asis', cache = TRUE)
+
+# Required libraries
+MyPackages = c("ggplot2", "knitr", "xlsx", "dplyr", "pastecs", "truncnorm") # install.packages(MyPackages)
+inst = lapply(MyPackages, library, character.only = TRUE) # load them
+
+Name = data.frame(chem = "일반화학추론", orga = "유기화학추론", phys = "물리추론", biol = "생물추론", stringsAsFactors = FALSE)
+```
+<center><a href = "http://peetpass.com" target=_blank>![](logo.png)</a></center>
+
+<blockquote>
+  <p>너무 멀리 갈 위험을 감수하는 자만이 얼마나 멀리 갈 수 있는 지 알 수 있다.</p>
+  <small><cite title="Source Title">T.S. Eliot</cite></small>
+</blockquote>
+
+<a href = "https://goo.gl/forms/oT6gsMC6jfFpof8w1" target=_blank class="btn btn-default btn-lg btn-block">2017 PEET 점수 입력</a>
+
+* 합격가능점수 예측에 가장 중요한 자료가 됩니다. 더욱 더 많은 분들이 점수를 입력해 주실수록 예측 확률이 높아집니다.
+
+# 2017년 PEET 분석 총평
+
+현재까지 모아진 `r (N = 1356)`명의 데이타를 근거로 2017년 피트패스 분석에 따르면,  <span class="label label-warning">`r Sys.time()` 현재</span>
+
+* 2017년 PEET시험에는 총 16272`r N2017=16272`명이 접수를 했으며, 정원대비 경쟁률은 약 9.6 대 1로 집계됩니다. 총 정원은  `r (Nadm = 16272/9.6)`명 입니다.
+
+* 최종 커트라인은 총점의 68% 정도 (원점수 400점 만점에 272점, 백분위 평균 84%) 맞춰야 할 것으로 보입니다.
+
+* 하위권 약대에 합격하려면 총점의 70% 정도 (원점수 400점 만점에 280점, 백분위 평균 87%) 맞춰야 할 것으로 보입니다.
+
+* 최상위권 약대에 합격하려면 총점의 90% 정도(원점수 400점 만점에 360점, 백분위 평균 95%)를 생각하면 됩니다. 
+
+* 전국 수석은 총점의 93% (원점수 400점 만점에 372점, 백분위 평균 100%)로 예상됩니다.
+
+### 난이도
+
+* 2017 PEET의 난이도는 어려웠다는 평이 지배적이었습니다.
+
+```{r difficulty}
+df <- data.frame(group = c("매우 쉬움", "쉬움", "평이", "어려움", "매우 어려움"), value = c(3, 1, 22, 67, 7))
+
+df$group <- factor(df$group, levels =c("매우 쉬움", "쉬움", "평이", "어려움", "매우 어려움"))
+
+ggplot(df, aes(x=group, y=value, fill=group))+ geom_bar(width = 1, stat = "identity") +theme(legend.position="none")
+```
+
+## 총점분석 (예측)
+
+* 표준점수로 예측한 인원 누적 입니다. 
+* 각 구간별 인원수를 볼 수 있습니다. 
+* 2017년 약대의 총 정원은 `r Nadm`명 입니다.
+
+```{r}
+Range = c("학년도", "응시인원", "270이상(표준점수)", "260-269점", "250~259점", "240~249점", "230~239점")
+
+Original <- read.csv("data/total.csv", stringsAsFactors = FALSE, skip = 1)
+Original_Final = rbind(Original,stat.desc(Original)["mean", ])[c(3,1,2),] %>% mutate(Year = replace(Year, Year == 2015.5, 2017)) %>% mutate(Total = replace(Total, Total == 14732.5, N2017))
+kable(Original_Final, digits = 0, col.names = Range)
+
+
+```
+
+## 과목별 예측
+
+```{r}
+Rnorm2 = function(n,mean,sd) 
+{ 
+  sample(20160821)
+  mean+sd*scale(rnorm(n)) 
+}
+
+df = NULL
+MyDist = function(No, Mean, Sd, Subject){
+  Dist = rtruncnorm(No, a=0, b=100, mean=Mean, sd=Sd)
+  cat(c("1. ", Subject, "- 평균은", 
+round(stat.desc(Dist)["mean"], digits = 1), "입니다. \n"))
+  Quant = round(quantile(Dist, c(0.99, 0.90, 0.75)), digits = 1)
+  cat(c("상위 1% 점수는", Quant[1]), "점, 상위 10% 점수는", Quant[2], "점, 상위 25% 점수는", Quant[3], "점 입니다. \n ")
+  dftemp = data.frame(Subj = Subject, value = Dist)
+  df <<- rbind(df, dftemp)
+}
+
+MyDist(N, 50.4, 16.0, Name$chem)
+MyDist(N, 43.5, 16.4, Name$orga)
+MyDist(N, 53.8, 15.7, Name$phys)
+MyDist(N, 54.8, 15.0, Name$biol)
+
+ggplot(df, aes(value, colour = Subj)) + geom_density() + coord_cartesian(xlim=c(0, 90)) + scale_x_continuous(breaks=seq(0, 90, 10))
+```
+
+
+## 2017년 PEET 과목별 분포 (원점수)
+
+### `r Name$chem`
+
+```{r}
+Range = c("연도", "75-80점", "70-75점", "65-70점", "60-65점", "55-60점", "50-55점", "45-50점", "40-45점", "35-40점", "30-35점", "30점 이하")
+Original <- read.csv("data/chem.csv", stringsAsFactors = FALSE, skip = 1)
+Original_Final = rbind(Original, stat.desc(Original)["mean", ] * 1.1)[c(3,1,2),] %>% mutate(Year = replace(Year, Year == 2015.5*1.1, 2017))
+kable(Original_Final, digits = 0, col.names = Range)
+```
+
+### `r Name$orga`
+
+```{r}
+Range = c("연도", "75-80점", "70-75점", "65-70점", "60-65점", "55-60점", "50-55점", "45-50점", "40-45점", "35-40점", "30-35점", "30점 이하")
+Original <- read.csv("data/orga.csv", stringsAsFactors = FALSE, skip = 1)
+Original_Final = rbind(Original, stat.desc(Original)["mean", ] * 1.1)[c(3,1,2),] %>% mutate(Year = replace(Year, Year == 2015.5*1.1, 2017))
+kable(Original_Final, digits = 0, col.names = Range)
+```
+
+### `r Name$phys`
+```{r}
+Range = c("연도", "80이상", "75-80점", "70-75점", "65-70점", "60-65점", "55-60점", "50-55점", "45-50점", "40-45점", "35-40점", "30-35점", "30점 이하")
+Original <- read.csv("data/phys.csv", stringsAsFactors = FALSE, skip = 1)
+Original_Final = rbind(Original, stat.desc(Original)["mean", ] * 1.1)[c(3,1,2),] %>% mutate(Year = replace(Year, Year == 2015.5*1.1, 2017))
+kable(Original_Final, digits = 0, col.names = Range)
+```
+
+### `r Name$biol`
+```{r}
+Range = c("연도", "75-80점", "70-75점", "65-70점", "60-65점", "55-60점", "50-55점", "45-50점", "40-45점", "35-40점", "30-35점", "30점 이하")
+Original <- read.csv("data/biol.csv", stringsAsFactors = FALSE, skip = 1)
+Original_Final = rbind(Original, stat.desc(Original)["mean", ] * 1.1)[c(3,1,2),] %>% mutate(Year = replace(Year, Year == 2015.5*1.1, 2017))
+kable(Original_Final, digits = 0, col.names = Range)
+```
+
+## 2017년 원점수 (예측)
+### 최근 3년 원점수 1점당 표준점수 차이
+
+```{r pressure, echo=FALSE}
+Range = c("연도", Name$chem, Name$orga, Name$phys, Name$biol)
+Original <- read.csv("data/original.csv", stringsAsFactors = FALSE)
+Original_Final = rbind(Original, stat.desc(Original)["mean", ])[c(3,1,2),] %>% mutate(Year = replace(Year, Year == 2015.5, 2017))
+kable(Original_Final, digits = 2, col.names = Range)
+```
+
+## 앞으로의 일정
+* 시험일시 2016-08-21-일 09:00 - 15:25 
+* 성적발표일 2016-09-21-수 10:00 이후
+
+## 각 학교 약대 입시요강
+중앙대 / 경희대 / 이화여대 / 성균관대 / 조선대 / 전남대 / 인제대 / 경상대 / 부산대 / 계명대 / 
+충남대 / 연세대 / 동국대 / 차의과대 / 순천대 / 충북대 / 목포대 / 우석대 / 대구가톨릭대 / 영남대 / 
+경북대 / 가천대 / 한양대 / 삼육대 / 덕성여대 / 가톨릭대
+
+# 대단히 감사합니다. 
+[PEETPASS.com](http://peetpass.com)은 2017년 PEET 예측에서 최대한 정확하고 과학적인 분석을 제시하겠습니다. 기대해주십시오. 
+
+```{r eval = FALSE}
+
+※ 현재 대학 수학능력시험에서 사용하는 표준점수는
+    언어,수리, 외국어영역은 평균이 100이고,  표준편차가 20인 T점수 척도를 활용하게 되며,
+ 사회/과학 직업탐구 및 제2외국어/한문은 평균 50,표준편차가 10인 T점수 척도를 활용하고있습니다.        
+ 
+표준점수= [원점수-평균 점수] / 표준편차 * 20 + 100 (언어, 수리, 외국어 영역)
+표준점수= [원점수- 평균점수] / 표준편차 * 10 + 50 (탐구 영역)
+14759
+
+```
+

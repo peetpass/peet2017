@@ -1,0 +1,7 @@
+![](intro.png)
+
+<a href = "http://cafe.naver.com/peet" target=_blank class="btn btn-default btn-lg btn-block">Naver Cafe / 네이버 카페</a>
+
+* PEETPASS는 PEET 수험생들로 이루어진 입시정보 공유 커뮤니티입니다.
+* 상업적이지 않은 정보 공유를 최우선으로 생각합니다.
+

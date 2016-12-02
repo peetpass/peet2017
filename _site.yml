@@ -1,0 +1,17 @@
+name: "PEETPASS"
+navbar:
+  title: "PEETPASS"
+  left:
+    - text: "Home"
+      icon: fa-home
+      href: index.html
+    - text: "About"
+      icon: fa-folder
+      href: about.html
+    - text: "2017점수입력"
+      icon: fa-gear
+      href: https://goo.gl/forms/oT6gsMC6jfFpof8w1
+    - text: "Cafe"
+      icon: fa-heart
+      href: http://cafe.naver.com/peet
+output_dir: "_site"

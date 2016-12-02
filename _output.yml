@@ -1,0 +1,9 @@
+html_document:
+  theme: cerulean 
+  highlight: tango
+  force_captions: no
+  fig_caption: no
+  number_sections: no
+  keep_md: no
+  include:
+    after_body: footer.html
